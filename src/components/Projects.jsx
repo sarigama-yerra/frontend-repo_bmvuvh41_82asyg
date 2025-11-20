@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useRef } from 'react'
+import { motion, useScroll, useTransform } from 'framer-motion'
 
 const projects = [
   {
@@ -22,73 +22,90 @@ const projects = [
     date: '2024-03-21',
     image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1200&auto=format&fit=crop',
     description: 'Interactive gallery integrating Spline scenes with smooth scroll and parallax.'
+  },
+  {
+    id: 4,
+    title: 'Design System Audit',
+    date: '2023-12-10',
+    image: 'https://images.unsplash.com/photo-1743385779347-1549dabf1320?ixid=M3w3OTkxMTl8MHwxfHNlYXJjaHwxfHxEZXNpZ24lMjBTeXN0ZW0lMjBBdWRpdHxlbnwwfDB8fHwxNzYzNjUyMTgxfDA&ixlib=rb-4.1.0&w=1600&auto=format&fit=crop&q=80',
+    description: 'Accessibility and performance audit for a cross-platform design system.'
   }
 ]
 
 export default function Projects() {
-  const [active, setActive] = useState(null)
-  const [open, setOpen] = useState(false)
-
-  const openModal = (p) => { setActive(p); setOpen(true) }
+  const ref = useRef(null)
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 0.8', 'end 0.2'] })
+  const glow = useTransform(scrollYProgress, [0, 1], [0.2, 0.55])
 
   return (
     <section id="projects" className="bg-[#0f172a]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <h2 className="text-3xl sm:text-4xl font-bold text-white">Projects</h2>
-        <p className="mt-2 text-[#94A3B8]">A selection of work that blends performance, polish and play.</p>
+        <div className="relative" ref={ref}>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white">Project Timeline</h2>
+          <p className="mt-2 text-[#94A3B8] max-w-2xl">Milestones that showcase product thinking, delightful motion, and real-world impact.</p>
 
-        <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((p) => (
-            <motion.button
-              key={p.id}
-              onClick={() => openModal(p)}
-              whileHover={{ y: -4 }}
-              className="text-left rounded-xl overflow-hidden bg-white/5 border border-white/10 hover:border-teal-400/40 focus:outline-none focus:ring-2 focus:ring-teal-400/40"
-            >
-              <div className="aspect-[4/3] overflow-hidden">
-                <img src={p.image} alt={p.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-              </div>
-              <div className="p-4">
-                <div className="text-teal-300 text-sm">{new Date(p.date).toLocaleDateString()}</div>
-                <div className="mt-1 text-white font-semibold">{p.title}</div>
-              </div>
-            </motion.button>
-          ))}
+          {/* Vertical line */}
+          <motion.div
+            style={{ opacity: glow }}
+            className="absolute left-4 sm:left-1/2 top-20 bottom-0 -translate-x-0 sm:-translate-x-1/2 w-px bg-gradient-to-b from-teal-300/60 via-teal-300/30 to-transparent"/>
+
+          <div className="mt-12 space-y-10">
+            {projects.map((p, idx) => {
+              const isLeft = idx % 2 === 0
+              return (
+                <TimelineItem key={p.id} project={p} align={isLeft ? 'left' : 'right'} index={idx} />
+              )
+            })}
+          </div>
         </div>
       </div>
-
-      <AnimatePresence>
-        {open && active && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/70 backdrop-blur flex items-center justify-center px-4"
-            onClick={() => setOpen(false)}
-          >
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 10, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-              className="max-w-3xl w-full rounded-2xl overflow-hidden border border-white/10 bg-[#0b1329]"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="aspect-video overflow-hidden">
-                <img src={active.image} alt={active.title} className="w-full h-full object-cover" />
-              </div>
-              <div className="p-6">
-                <div className="text-teal-300 text-sm">{new Date(active.date).toLocaleDateString()}</div>
-                <h3 className="mt-1 text-white text-2xl font-bold">{active.title}</h3>
-                <p className="mt-3 text-[#94A3B8]">{active.description}</p>
-                <div className="mt-6 flex justify-end">
-                  <button onClick={() => setOpen(false)} className="px-4 py-2 rounded-lg bg-white/5 text-slate-300 border border-white/10 hover:border-teal-400/40 hover:text-teal-200">Close</button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </section>
+  )
+}
+
+function TimelineItem({ project, align, index }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.6, delay: index * 0.05 }}
+      className={`relative grid grid-cols-[1rem,1fr] sm:grid-cols-2 gap-6 sm:gap-10 items-stretch`}
+    >
+      {/* Dot */}
+      <div className="relative sm:col-span-2">
+        <div className="absolute left-4 sm:left-1/2 -translate-x-1/2 -top-2 h-3 w-3 rounded-full bg-teal-300 shadow-[0_0_0_6px_rgba(94,234,212,0.15)]" />
+      </div>
+
+      {/* Card */}
+      <div className={`sm:col-span-2 ${align === 'left' ? 'sm:pr-[55%]' : 'sm:pl-[55%]' }`}>
+        <motion.div
+          whileHover={{ y: -4 }}
+          className="group relative rounded-xl overflow-hidden bg-white/5 border border-white/10 hover:border-teal-400/40"
+        >
+          <div className="aspect-[16/9] overflow-hidden">
+            <motion.img
+              src={project.image}
+              alt={project.title}
+              className="w-full h-full object-cover"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.5 }}
+            />
+          </div>
+          <div className="p-5">
+            <div className="text-teal-300 text-sm">{new Date(project.date).toLocaleDateString()}</div>
+            <h3 className="mt-1 text-white text-xl font-semibold">{project.title}</h3>
+            <p className="mt-2 text-[#94A3B8]">{project.description}</p>
+            <div className="mt-4 flex items-center gap-3">
+              <button className="px-3 py-1.5 rounded-lg bg-teal-400/15 text-teal-200 border border-teal-400/30 hover:bg-teal-400/25 transition">Details</button>
+              <button className="px-3 py-1.5 rounded-lg bg-white/5 text-slate-300 border border-white/10 hover:border-teal-400/40 hover:text-teal-200 transition">Live</button>
+            </div>
+          </div>
+
+          {/* glow */}
+          <div className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-[radial-gradient(400px_160px_at_var(--x,50%)_0%,rgba(94,234,212,0.18),transparent)]" />
+        </motion.div>
+      </div>
+    </motion.div>
   )
 }

@@ -1,14 +1,32 @@
-import Spline from '@splinetool/react-spline'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 
 export default function Hero() {
+  const [tilt, setTilt] = useState({ rx: 0, ry: 0 })
+
+  const handleMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const px = (e.clientX - rect.left) / rect.width
+    const py = (e.clientY - rect.top) / rect.height
+    const ry = (px - 0.5) * 18 // yaw
+    const rx = -(py - 0.5) * 18 // pitch
+    setTilt({ rx, ry })
+  }
+
+  const resetTilt = () => setTilt({ rx: 0, ry: 0 })
+
   return (
     <section className="relative min-h-[80vh] w-full overflow-hidden bg-[#0f172a]">
-      <div className="absolute inset-0">
-        <Spline scene="https://prod.spline.design/VJLoxp84lCdVfdZu/scene.splinecode" style={{ width: '100%', height: '100%' }} />
+      {/* Soft gradients + glow background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-32 -left-32 h-80 w-80 rounded-full blur-3xl opacity-30" style={{
+          background: 'radial-gradient(circle at 50% 50%, rgba(94,234,212,0.35), transparent 60%)'
+        }} />
+        <div className="absolute -bottom-20 -right-20 h-96 w-96 rounded-full blur-3xl opacity-20" style={{
+          background: 'radial-gradient(circle at 50% 50%, rgba(56,189,248,0.35), transparent 60%)'
+        }} />
+        <div className="absolute inset-0 bg-[radial-gradient(1000px_500px_at_80%_-10%,rgba(94,234,212,0.10),transparent),radial-gradient(700px_400px_at_10%_110%,rgba(56,189,248,0.10),transparent)]" />
       </div>
-
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0f172a]/10 via-[#0f172a]/40 to-[#0f172a] pointer-events-none" />
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-16">
         <motion.div
@@ -31,16 +49,49 @@ export default function Hero() {
             </div>
           </div>
 
+          {/* Interactive spherical portrait */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.15 }}
             className="justify-self-center"
           >
-            <div className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-2xl overflow-hidden ring-2 ring-teal-400/40 shadow-[0_10px_60px_rgba(94,234,212,0.2)]">
-              <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=800&auto=format&fit=crop" alt="Portrait" className="w-full h-full object-cover" />
+            <div
+              className="relative group"
+              onMouseMove={handleMove}
+              onMouseLeave={resetTilt}
+              style={{ perspective: 900 }}
+            >
+              <motion.div
+                style={{
+                  transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)`
+                }}
+                animate={{ scale: 1 }}
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                className="relative w-56 h-56 sm:w-64 sm:h-64 lg:w-80 lg:h-80 rounded-full overflow-hidden ring-4 ring-teal-400/30 shadow-[0_10px_80px_rgba(94,234,212,0.25)]"
+              >
+                <img
+                  src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1200&auto=format&fit=crop"
+                  alt="Portrait"
+                  className="w-full h-full object-cover"
+                />
+                {/* subtle highlight sweep */}
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-white/0 via-white/0 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </motion.div>
+
+              {/* Orbiting accent ring */}
+              <motion.div
+                aria-hidden
+                className="absolute inset-0 -z-10 flex items-center justify-center"
+                initial={{ rotate: 0 }}
+                animate={{ rotate: 360 }}
+                transition={{ duration: 14, repeat: Infinity, ease: 'linear' }}
+              >
+                <div className="h-[calc(100%+36px)] w-[calc(100%+36px)] rounded-full border border-teal-300/20" />
+              </motion.div>
             </div>
-            <p className="mt-4 text-center text-sm text-[#94A3B8]">Building smooth UI with motion and 3D</p>
+            <p className="mt-5 text-center text-sm text-[#94A3B8]">Thoughtful UI with motion and craft</p>
           </motion.div>
         </motion.div>
       </div>
