@@ -2,7 +2,8 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import App from './App'
-import Test from './Test'
+import AboutPage from './pages/AboutPage'
+import ProjectsPage from './pages/ProjectsPage'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -10,7 +11,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<App />} />
-        <Route path="/test" element={<Test />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/projects" element={<ProjectsPage />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>,
